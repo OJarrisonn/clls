@@ -3,8 +3,7 @@
   (:require [clls.file :refer [file-object]] 
             [clls.fsys :refer [open-folder list-folder]] 
             [clls.display :refer [display]]
-            [clls.fmt :refer [format-file]]
-            [clls.config :refer [options]]))
+            [clls.fmt :refer [format-file]]))
 
 (defn -main
   "I don't do a whole lot ... yet."
@@ -12,4 +11,4 @@
   (let [folder (open-folder (first args))
         files (list-folder folder)
         entries (map #(format-file (file-object %)) files)]
-    (display entries options)))
+    (display entries)))

@@ -1,42 +1,14 @@
 (ns clls.fmt
-  (:import (java.util Date)))
+  (:require
+   [clls.config :refer [options]]) 
+  (:import
+   (java.util Date)))
 
 (def default-icon " ")
 (def six-months (* 30 24 60 60 1000 6))
 
-(def file-icons
-  {:dir "󰉋  "
-   :image "󰋩 "
-   :video " "
-   :audio " "
-   :license " "
-   :readme " "
-   :unknown default-icon})
-
 (def file-columns
   [:dir :perms :user :group :size :created :accessed :modified :name])
-
-(def columns-headers
-  {:dir "Dir"
-   :perms "Permissions"
-   :user "User"
-   :group "Group"
-   :size "Size"
-   :created "Date Created"
-   :accessed "Date Accessed"
-   :modified "Date Modified"
-   :name "Name"})
-
-(def column-alignment
-  {:dir :left
-   :perms :left
-   :user :left
-   :group :left
-   :size :right
-   :created :left
-   :accessed :left
-   :modified :left
-   :name :left})
 
 (def months
   ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"])
@@ -51,7 +23,7 @@
 (defn iconify-file-name
   "Given a file name, return it with an icon acording to it's type."
   [name type]
-  (str (or (get file-icons type) default-icon) name))
+  (str (or (get (:icons options) type) (:unknown (:icons options))) name))
 
 (defn append-dir-slash
   "If a file is a directory, append a slash to its name."
@@ -116,8 +88,8 @@
 
 (defn max-columns-width
   "Given a list of maps, return a map with the maximum width of each column."
-  [files]
-  (let [rows (conj files columns-headers)]
+  [files ]
+  (let [rows (conj files (:headers options))]
     (into 
      {} 
      (map 
@@ -128,9 +100,10 @@
 (defn align-columns
   "Given a list of maps and a map with the maximum width of each column, return a list of maps with the columns aligned."
   [file max-widths]
-  (let [align (fn [col val] 
+  (let [alignment (:align options)
+        align (fn [col val] 
                 (let [pad (apply str (repeat (- (get max-widths col) (count val)) " "))
-                      align (get column-alignment col)] 
+                      align (get alignment col)] 
                   (if (= align :left) (str val pad) (str pad val))))]
     (reduce 
      (fn [acc col] 

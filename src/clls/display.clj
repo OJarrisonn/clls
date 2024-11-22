@@ -1,16 +1,18 @@
 (ns clls.display
-  (:require [clls.fmt :refer [max-columns-width align-columns columns-headers]]))
+  (:require
+   [clls.config :refer [options]]
+   [clls.fmt :refer [align-columns max-columns-width]]))
 
 (defn display
   "Given a list of file objects, display them in a table."
-  [files opts]
+  [files]
   (let [max-widths (max-columns-width files)
         aligned-files (map #(align-columns % max-widths) files)
-        aligned-headers (align-columns columns-headers max-widths)
+        aligned-headers (align-columns (:headers options) max-widths)
         lines (cons aligned-headers aligned-files)
         applied-lines (cond->> lines
-                        (:columns opts)
-                        (map #(select-keys % (:columns opts)))
+                        (:columns options)
+                        (map #(select-keys % (:columns options)))
                       
                         true
                         (map #(vals %)))]
