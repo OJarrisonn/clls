@@ -16,7 +16,7 @@
 (def file-columns
   [:dir :perms :user :group :size :created :accessed :modified :name])
 
-(def formatted-columns
+(def columns-headers
   {:dir "Dir"
    :perms "Permissions"
    :user "User"
@@ -65,11 +65,11 @@
   [date]
   (let [date (Date. date)
         delta (- (.getTime (Date.)) (.getTime date))]
-    (str (.getDate date) 
-         " " (nth months (.getMonth date)) 
+    (str (format "%02d" (.getDate date)) 
+         " " (nth months (.getMonth date))  
          " " (if (< delta six-months) 
-               (str (.getHours date) ":" (.getMinutes date)) 
-               (.getYear date)))))
+               (str (format "%02d" (.getHours date)) ":" (format "%02d" (.getMinutes date))) 
+               (+ 1900 (.getYear date))))))
 
 (defn format-size
   "Given a size in bytes, return it formatted as a string."
@@ -117,7 +117,7 @@
 (defn max-columns-width
   "Given a list of maps, return a map with the maximum width of each column."
   [files]
-  (let [rows (conj files formatted-columns)]
+  (let [rows (conj files columns-headers)]
     (into 
      {} 
      (map 
@@ -137,8 +137,3 @@
        (assoc acc col (align col (get file col)))) 
      {} 
      file-columns)))
-
-(defn filter-columns
-  "Given a map, filter out the columns that are not in the list of columns to show. Outputting an ordered list"
-  [file selected]
-  (into {} (map (fn [col] [col (get file col)]) selected)))
