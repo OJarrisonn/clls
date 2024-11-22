@@ -8,7 +8,7 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (let [folder (open-folder (first args))
+  (let [folder (open-folder (or (first args) "."))
         files (list-folder folder)
         entries (map #(format-file (file-object %)) files)]
     (display entries)))

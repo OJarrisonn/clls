@@ -1,5 +1,8 @@
 (ns clls.fsys
-  (:import (java.io File)))
+  (:require
+   [clls.config :refer [options]]) 
+  (:import
+   (java.io File)))
 
 (defn open-folder
   "Get a File to a folder if it exists and is readable, otherwise return nil."
@@ -11,5 +14,13 @@
   "Given a folder File, return a list of its contents as a File[]."
   [folder]
   (if folder
-    (.listFiles folder)
+    (cond->> (.listFiles folder)
+      (:files-only options)
+      (filter #(not (.isDirectory %)))
+      
+      (:dirs-only options)
+      (filter #(.isDirectory %))
+      
+      (not (:all options))
+      (filter #(not (.isHidden %))))
     nil))

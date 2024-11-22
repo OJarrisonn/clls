@@ -46,29 +46,33 @@
 (defn format-size
   "Given a size in bytes, return it formatted as a string."
   [size]
-  (cond
-    (< size 1024) (str size)
-    (< size 1048576) (str (int (/ size 1024)) "Ki")
-    (< size 1073741824) (str (int (/ size 1048576)) "Mi")
-    :else (str (int (/ size 1073741824)) "Gi")))
-
-(defn format-permissions
-  "Given a set of PosixFilePermissions, return a string with its permissions in the ls format."
-  [perms]
-  (str (if (contains? perms :owner_read) "r" "-")
-       (if (contains? perms :owner_write) "w" "-")
-       (if (contains? perms :owner_execute) "x" "-")
-       (if (contains? perms :group_read) "r" "-")
-       (if (contains? perms :group_write) "w" "-")
-       (if (contains? perms :group_execute) "x" "-")
-       (if (contains? perms :others_read) "r" "-")
-       (if (contains? perms :others_write) "w" "-")
-       (if (contains? perms :others_execute) "x" "-")))
+  (let [binary (:binary options) 
+        scale (if binary 1024 1000)]
+    (cond 
+      (< size scale) (str size) 
+      (< size (* scale scale)) (str (int (/ size scale)) (if binary "Ki" "K")) 
+      (< size (* scale scale scale scale)) (str (int (/ size (* scale scale))) (if binary "Mi" "M")) 
+      :else (str (int (/ size (* scale scale scale scale))) (if binary "Gi" "G")))))
 
 (defn format-dir-flag
   "Given a file, return a string with a flag if it's a directory."
   [file]
   (if (:dir file) "d" "."))
+
+(defn format-permissions
+  "Given a file object returns a string with its permissions in the ls format."
+  [file]
+  (let [perms (:perms file)]
+    (str (if (:dir-as-perm options) (if (:dir file) "d" ".") "")
+         (if (contains? perms :owner_read) "r" "-")
+         (if (contains? perms :owner_write) "w" "-")
+         (if (contains? perms :owner_execute) "x" "-")
+         (if (contains? perms :group_read) "r" "-")
+         (if (contains? perms :group_write) "w" "-")
+         (if (contains? perms :group_execute) "x" "-")
+         (if (contains? perms :others_read) "r" "-")
+         (if (contains? perms :others_write) "w" "-")
+         (if (contains? perms :others_execute) "x" "-"))))
 
 (defn format-file
     "Given a file object, return a string with its name, icon, creation date, and size."
@@ -80,7 +84,7 @@
      :created (format-date (:created file)) 
      :accessed (format-date (:accessed file)) 
      :modified (format-date (:modified file))
-     :perms (format-permissions (:perms file)) 
+     :perms (format-permissions file) 
      :dir (format-dir-flag file)
      :user (:user file) 
      :group (:group file)
