@@ -5,7 +5,7 @@
 (def six-months (* 30 24 60 60 1000 6))
 
 (def file-icons
-  {:dir "󰉋 "
+  {:dir "󰉋  "
    :image "󰋩 "
    :video " "
    :audio " "
@@ -14,9 +14,9 @@
    :unknown default-icon})
 
 (def file-columns
-  [:dir :perms :user :group :size :created :accessed :modified])
+  [:dir :perms :user :group :size :created :accessed :modified :name])
 
-(def formated-columns
+(def formatted-columns
   {:dir "Dir"
    :perms "Permissions"
    :user "User"
@@ -24,7 +24,19 @@
    :size "Size"
    :created "Date Created"
    :accessed "Date Accessed"
-   :modified "Date Modified"})
+   :modified "Date Modified"
+   :name "Name"})
+
+(def column-alignment
+  {:dir :left
+   :perms :left
+   :user :left
+   :group :left
+   :size :right
+   :created :left
+   :accessed :left
+   :modified :left
+   :name :left})
 
 (def months
   ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"])
@@ -101,3 +113,32 @@
      :user (:user file) 
      :group (:group file)
      :size (format-size (:size file))})
+
+(defn max-columns-width
+  "Given a list of maps, return a map with the maximum width of each column."
+  [files]
+  (let [rows (conj files formatted-columns)]
+    (into 
+     {} 
+     (map 
+      (fn [col] 
+        [col (apply max (map #(count (get % col)) rows))]) 
+      file-columns))))
+
+(defn align-columns
+  "Given a list of maps and a map with the maximum width of each column, return a list of maps with the columns aligned."
+  [file max-widths]
+  (let [align (fn [col val] 
+                (let [pad (apply str (repeat (- (get max-widths col) (count val)) " "))
+                      align (get column-alignment col)] 
+                  (if (= align :left) (str val pad) (str pad val))))]
+    (reduce 
+     (fn [acc col] 
+       (assoc acc col (align col (get file col)))) 
+     {} 
+     file-columns)))
+
+(defn filter-columns
+  "Given a map, filter out the columns that are not in the list of columns to show. Outputting an ordered list"
+  [file selected]
+  (into {} (map (fn [col] [col (get file col)]) selected)))
